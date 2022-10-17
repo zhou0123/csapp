@@ -232,7 +232,7 @@ int conditional(int x, int y, int z) {
  */
 int isLessOrEqual(int x, int y) {
   int sign = 0x1<<31;
-  int x = ~(sign|x);
+  x = ~(sign|x);
   x= x+y;
   return !(x>>31);
 }
@@ -290,7 +290,13 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+    unsigned exp =  (uf&0x7f800000)>>23;
+    unsigned sign = (1<<31)&uf;
+    if (exp ==255) return uf;
+    else if (exp ==0) return (uf<<1)|sign;
+    exp++;
+    if (exp ==255) return 0x7f800000|sign;
+    return (exp<<23)|(uf&0x007fffff)|sign;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -305,7 +311,19 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+    unsigned exp = (uf&0x7f800000)-127;
+    unsigned sign = uf>>31;
+    unsigned frac = (uf&0x007fffff)|0x00800000;
+
+    if (!(uf&0x7fffff)) return 0;
+    if (exp >31) return 0x80000000;
+    else if (exp<0) return 0;
+    if (exp>23) frac<<=(exp-23);
+    else frac>>=(23-exp);
+
+    if (!(sign^(frac>>31))) return frac;
+    else if (frac>>31) return 0x80000000;
+    return ~frac+1;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -321,5 +339,8 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+    if (x<=150) return 0;
+    else if (x<=-127) return (1<<23)>>(-126-x);
+    else if (x<=127) return(0x7f+x)<<23;
+    else return 0x7f800000;
 }

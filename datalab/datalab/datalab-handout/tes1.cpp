@@ -3,9 +3,7 @@ using namespace std;
 
 int main()
 {
-    int a ;
-    cin >>a;
-    int b = !a;
-    cout <<b<<endl;
-    return 1;
+    unsigned uf =1;
+    unsigned frac = uf & 0x7fffff;
+    unsigned exp = (uf & 0x7f800000) >> 23;
 }
