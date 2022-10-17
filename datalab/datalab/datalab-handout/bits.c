@@ -339,7 +339,7 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    if (x<=150) return 0;
+    if (x<=-150) return 0;
     else if (x<=-127) return (1<<23)>>(-126-x);
     else if (x<=127) return(0x7f+x)<<23;
     else return 0x7f800000;
