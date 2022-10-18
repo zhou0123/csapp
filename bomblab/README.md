@@ -1,3 +1,4 @@
+```
 phase_1:
 Border relations with Canada have never been better.
 phase_2:
@@ -11,3 +12,4 @@ phase_3:
 5:$0xce 
 6:$0x2aa 
 7:$0x147 
+```
