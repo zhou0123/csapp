@@ -238,7 +238,7 @@ int isLessOrEqual(int x, int y) {
   int bit =1<<31;
   int s_x = x&bit;
   int s_y = y&bit;;
-  int bx = s_x^s_y;//同号为0
+  int bx = s_x^s_y; 
   bx= (bx>>31)&1;
 
   return ((!bx)&(!check)) | ((bx)&(s_x>>31));
