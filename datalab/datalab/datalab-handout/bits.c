@@ -180,8 +180,8 @@ int isTmax(int x) {
  */
 int allOddBits(int x) {
   int mask = 0xAA+(0xAA<<8);
-  mask = mask + (mask<<16);
-  return  ~((mask&x)^mask);
+  mask = mask+(mask<<16);
+  return !((mask&x)^mask);
 }
 /* 
  * negate - return -x 
@@ -209,7 +209,7 @@ int isAsciiDigit(int x) {
   int down = ~(0x30);
   int r1 = (sign&(up+x))>>31;
   int r2 = (sign&(down+1+x))>>31;
-  return ~(r1|r2);
+  return !(r1|r2);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -221,7 +221,7 @@ int isAsciiDigit(int x) {
 int conditional(int x, int y, int z) {
   x = !! x; 
   x = ~x+1;
-  return (x&y)|(~x&y);
+  return (x&y)|(~x&z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -231,10 +231,17 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  int sign = 0x1<<31;
-  x = ~(sign|x);
-  x= x+y;
-  return !(x>>31);
+  int x_ = ~x+1;
+  int add = x_+y;
+  int check = add>>31&1;
+
+  int bit =1<<31;
+  int s_x = x&bit;
+  int s_y = y&bit;;
+  int bx = s_x^s_y;//同号为0
+  bx= (bx>>31)&1;
+
+  return ((!bx)&(!check)) | ((bx)&(s_x>>31));
 }
 //4
 /* 
@@ -262,7 +269,7 @@ int logicalNeg(int x) {
  */
 int howManyBits(int x) {
   int b16,b8,b4,b2,b1,b0;
-  int sign = 0x1>>31;
+  int sign = x>>31;
   x = (sign&~x)|(~sign&x);
   b16 = !!(x>>16)<<4;
   x = x>>b16;
@@ -275,7 +282,7 @@ int howManyBits(int x) {
   b1 = !!(x>>1);
   x = x>>b1;
   b0 = x;
-  return b16+b8+b4+b2+b1+b0+1;  
+  return b16+b8+b4+b2+b1+b0+1; 
 }
 //float
 /* 
@@ -311,19 +318,21 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-    unsigned exp = (uf&0x7f800000)-127;
-    unsigned sign = uf>>31;
-    unsigned frac = (uf&0x007fffff)|0x00800000;
 
-    if (!(uf&0x7fffff)) return 0;
-    if (exp >31) return 0x80000000;
-    else if (exp<0) return 0;
-    if (exp>23) frac<<=(exp-23);
-    else frac>>=(23-exp);
+  unsigned sign = uf>>31;
+  int exp = ((uf&0x7f800000)>>23)-127;
+  int frac = (uf&0x007fffff)|0x00800000;
 
-    if (!(sign^(frac>>31))) return frac;
-    else if (frac>>31) return 0x80000000;
-    return ~frac+1;
+  if(!(uf&0x7fffffff)) return 0;
+  if (exp >31) return 0x80000000;
+  if (exp<0) return 0;
+
+  if (exp>23) frac<<=(exp-23);
+  else frac>>=(23-exp);
+
+  if (!((frac>>31)^sign)) return frac;
+  else if (frac>>31) return 0x80000000;
+  else return ~frac+1;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
